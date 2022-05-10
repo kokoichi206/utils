@@ -1,0 +1,31 @@
+name: Build
+
+on:
+  workflow_call:
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      # need Makefile to run this 
+      - name: Build
+        run: |
+          PATH_TO_PBX="$(find . -name project.pbxproj)"
+          ARR=(${PATH_TO_PBX//./ })
+          echo ${ARR[0]:1}
+          xcodebuild
+            -scheme ${ARR[0]:1}
+            -sdk iphonesimulator
+            -configuration Debug
+            build
+      - name: Store cache for later uploading
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/Library/Developer/Xcode/DerivedData/*/Logs/Build/*
+            ~/Library/Developer/Xcode/DerivedData/*/Build/Products
+          key: ${{ runner.os }}-build-${{ hashFiles('$(find . -name project.pbxproj)') }}
+          restore-keys: |
+            ${{ runner.os }}-build-

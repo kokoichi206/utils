@@ -1,0 +1,28 @@
+name: Build
+
+on:
+  workflow_call:
+
+jobs:
+  tests:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Run tests
+        run: |
+          PATH_TO_PBX="$(find . -name project.pbxproj)"
+          ARR=(${PATH_TO_PBX//./ })
+          xcodebuild
+            -scheme ${ARR[0]:1}
+            -sdk iphonesimulator
+            -destination 'platform=iOS Simulator,name=iPhone 11 Pro'
+            clean test
+
+      - name: Store cache for uploading
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/Library/Developer/Xcode/DerivedData/*/Logs/Test
+          key: ${{ runner.os }}-tests-${{ hashFiles('$(find . -name project.pbxproj)') }}
+          restore-keys: |
+            ${{ runner.os }}-tests-
