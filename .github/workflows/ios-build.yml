@@ -9,17 +9,20 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      # need Makefile to run this 
-      - name: Build
+      - name: Get version of BASE_REF
+        id: return-scheme-name
         run: |
           PATH_TO_PBX="$(find . -name project.pbxproj)"
           ARR=(${PATH_TO_PBX//./ })
-          echo ${ARR[0]:1}
-          xcodebuild
-            -scheme ${ARR[0]:1}
+          echo "::set-output name=name::$(echo ${ARR[0]:1})"
+
+      - name: Build
+        run: xcodebuild
+            -scheme ${{ steps.return-scheme-name.outputs.name }}
             -sdk iphonesimulator
             -configuration Debug
             build
+
       - name: Store cache for later uploading
         uses: actions/cache@v2
         with:
