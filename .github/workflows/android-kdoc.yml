@@ -1,0 +1,44 @@
+name: Create KDoc
+
+on:
+  workflow_call:
+
+# html形式でのkDocをキャッシュする
+jobs:
+  update-kdoc:
+    name: Build kdoc
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Check out
+        uses: actions/checkout@v2
+
+      - name: Restore cache for Gradle
+        id: gradle_cache
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+      - name: When cache NOT hit, set up JDK 11
+        if: ${{ !steps.gradle_cache.outputs.cache-hit }}
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'zulu'
+          java-version: '11'
+      - name: Create HTML by dokka
+        run: ./gradlew dokkaHtml
+      - name: Move these HTML to kdoc directory
+        run: |
+          mkdir -p kdoc
+          mv app/build/dokka/ kdoc
+      - name: Cache for later upload
+        uses: actions/cache@v2
+        with:
+          path: |
+            ./kdoc
+          key: ${{ runner.os }}-kdoc-${{ hashFiles('./app/build.gradle') }}
+          restore-keys: |
+            ${{ runner.os }}-kdoc-

@@ -1,0 +1,144 @@
+name: Release
+
+on:
+  workflow_call:
+
+# バージョン値はapp/build.gradleに以下の形式で記述されている
+# def versionMajor = 1
+# def versionMinor = 0
+# def versionPatch = 1
+jobs:
+  create-release:
+    runs-on: ubuntu-20.04
+    
+    environment: production
+    steps:
+      - name: Check out
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0 # 0 means all branches
+
+      - name: Get version of BASE_REF
+        id: version-base-ref
+        run: |
+          git checkout ${GITHUB_BASE_REF}
+          # check the file
+          FILE="app/build.gradle"
+          while read line
+          do
+            if [[ "$line" =~ "def versionMajor"([ ]*)=([ ]*)([0-9]*) ]]; then
+              MAJOR="${BASH_REMATCH[3]}"
+            elif [[ "$line" =~ "def versionMinor"([ ]*)=([ ]*)([0-9]*) ]]; then
+              MINOR="${BASH_REMATCH[3]}"
+            elif [[ "$line" =~ "def versionPatch"([ ]*)=([ ]*)([0-9]*) ]]; then
+              PATCH="${BASH_REMATCH[3]}"
+            fi
+          done < "$FILE"
+          if [ -z "$MAJOR" ] || [ -z "$MINOR" ] || [ -z "$PATCH" ]; then
+            exit 1
+          fi
+          echo "::set-output name=major::$(echo ${MAJOR})"
+          echo "::set-output name=minor::$(echo ${MINOR})"
+      - name: Get version of HEAD_REF
+        id: version-head-ref
+        run: |
+          git checkout ${GITHUB_HEAD_REF}
+          # check the file
+          FILE="app/build.gradle"
+          while read line
+          do
+            if [[ "$line" =~ "def versionMajor"([ ]*)=([ ]*)([0-9]*) ]]; then
+              MAJOR="${BASH_REMATCH[3]}"
+            elif [[ "$line" =~ "def versionMinor"([ ]*)=([ ]*)([0-9]*) ]]; then
+              MINOR="${BASH_REMATCH[3]}"
+            elif [[ "$line" =~ "def versionPatch"([ ]*)=([ ]*)([0-9]*) ]]; then
+              PATCH="${BASH_REMATCH[3]}"
+            fi
+          done < "$FILE"
+          if [ -z "$MAJOR" ] || [ -z "$MINOR" ] || [ -z "$PATCH" ]; then
+            exit 1
+          fi
+          echo "::set-output name=major::$(echo ${MAJOR})"
+          echo "::set-output name=minor::$(echo ${MINOR})"
+          echo "::set-output name=full::$(echo ${MAJOR}.${MINOR}.${PATCH})"
+      - name: Check whether release is needed
+        id: is-release-need
+        run: |
+          base_major="${{ steps.version-base-ref.outputs.major }}"
+          base_minor="${{ steps.version-base-ref.outputs.minor }}"
+          head_major="${{ steps.version-head-ref.outputs.major }}"
+          head_minor="${{ steps.version-head-ref.outputs.minor }}"
+          if [[ "$base_major" != "$head_major" || "$base_minor" != "$head_minor" ]]; then
+            echo "::set-output name=need::true"
+          else
+            echo "::set-output name=need::false"
+          fi
+      - name: Add tag
+        if: ${{ steps.is-release-need.outputs.need == 'true' }}
+        run: |
+          git config --local user.email "${GITHUB_ACTOR}@from.github.actions" || echo "No changes to commit"
+          git config --local user.name "${GITHUB_ACTOR}" || echo "No changes to commit"
+          version="${{ steps.version-head-ref.outputs.full }}"
+          set +e
+          exist_tag=`git tag | grep v${version}`
+          set -e
+          if [ -n "$exist_tag" ]; then
+            echo "tag already exists"
+            exit 1
+          else
+            git tag -a "v${version}" -m "version ${version}"
+            git push origin "v${version}"
+          fi
+      - name: Create Body
+        if: ${{ steps.is-release-need.outputs.need == 'true' }}
+        id: create-body
+        run: |
+          feature=()
+          bugfix=()
+          maintenance=()
+          tag1=`git tag | tail -n1`
+          tag2=`git tag | tail -n2 | awk 'NR==1'`
+          # Commits list
+          commits=`git log ${tag2}..${tag1} --oneline --no-merges`
+          while read commit
+          do
+            if [[ "$commit" =~ .*(feat).* ]]; then
+              feature+=( "$commit" )
+            elif [[ "$commit" =~ .*(bug|fix).* ]]; then
+              bugfix+=( "$commit" )
+            else
+              maintenance+=( "$commit" )
+            fi
+          done <<< "$commits"
+          body="## 👊 Features\n"
+          for feat in "${feature[@]}"; do
+            body+="* $feat\n"
+          done
+          body+="## 🐛 Bugfix\n"
+          for fix in "${bugfix[@]}"; do
+            body+="* $fix\n"
+          done
+          body+="## 🌴 Maintenance\n"
+          for maint in "${maintenance[@]}"; do
+            body+="* $maint\n"
+          done
+          echo "::set-output name=body::$(echo ${body})"
+      - name: Create release-notes
+        if: ${{ steps.is-release-need.outputs.need == 'true' }}
+        run: |
+          owner_repo="${{ github.repository }}" # owner/repo
+          tag_name="${{ steps.version-head-ref.outputs.full }}"
+          body="${{ steps.create-body.outputs.body }}"
+          curl \
+            -X POST \
+            -H "Authorization:token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            -d '{
+              "tag_name": "'"v$tag_name"'",
+              "name": "'"v$tag_name"'",
+              "body": "'"$body"'",
+              "draft": false,
+              "generate_release_notes": true,
+              "prerelease": true
+            }' \
+            https://api.github.com/repos/${owner_repo}/releases

@@ -1,0 +1,98 @@
+name: Create license
+
+on:
+  workflow_call:
+    # Map the workflow outputs to job outputs
+    outputs:
+      is_idff:
+        description: "Whether the lisence is changed or not"
+        value: ${{ jobs.create-license.outputs.is_idff }}
+
+# ライセンス情報をキャッシュする
+jobs:
+  create-license:
+    name: Create license
+    runs-on: ubuntu-20.04
+    outputs:  # job 間で値を共有
+      is_idff: ${{ steps.diff_check.outputs.diff }}
+    steps:
+      - name: Check out
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0 # 0 means all branches
+
+      - name: Set up JDK 11
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'zulu'
+          java-version: '11'
+
+      - name: Run Android Build
+        run: ./gradlew assembleDebug
+
+      - name: Build
+        run: |
+          metadata_path='app/build/generated/third_party_licenses/res/raw/third_party_license_metadata'
+          data_path='app/build/generated/third_party_licenses/res/raw/third_party_licenses'
+          mkdir ./public
+          mv "${metadata_path}" ./public
+          mv "${data_path}" ./public
+      - name: Checkout to ph-pages to compare previous version
+        run: |
+          git checkout origin/gh-pages
+      - name: Check diff metadata
+        id: diff-metadata
+        run: |
+          metadata_path='third_party_license_metadata'
+          data_path='third_party_licenses'
+          meta_file="./third_party_license_metadata"
+          if [ ! -e "$meta_file" ]; then
+            touch "$meta_file"
+          fi
+          echo "===== diff start ====="
+          set +e
+          # FIXME: 2回同じ計算してる
+          diff_meta=`diff ${meta_file} "./public/${metadata_path}"`
+          diff ${meta_file} "./public/${metadata_path}" > ./public/diff_metadata
+          set -e
+          # Preserve results
+          echo "::set-output name=diff::$(echo $diff_meta)"
+        shell: bash
+      - name: Check diff licenses
+        id: diff-license
+        run: |
+          data_path='third_party_licenses'
+          license_file="./third_party_license"
+          if [ ! -e "$license_file" ]; then
+            touch "$license_file"
+          fi
+          set +e
+          # FIXME: 2回同じ計算してる
+          diff_license=`diff ${license_file} "./public/${data_path}"`
+          diff ${license_file} "./public/${data_path}" > ./public/diff_license
+          set -e
+          # Preserve results
+          echo "::set-output name=diff::$(echo $diff_license)"
+        shell: bash
+      - name: Check Diff
+        id: diff_check
+        continue-on-error: true
+        run: |        
+          if [ -n "${{ steps.diff-metadata.outputs.diff }}" ]; then
+            echo "diff found!!"
+            echo "::set-output name=diff::true"
+          else
+            echo "diff nooooot found!!"
+            echo "::set-output name=diff::false"
+          fi
+          echo "id_diff check"
+          echo ${{ env.env_is_diff }}
+          git checkout ${{ github.repository }}
+      - name: Cache for later upload
+        uses: actions/cache@v2
+        with:
+          path: |
+            ./public
+          key: ${{ runner.os }}-public-${{ hashFiles('./app/build.gradle') }}
+          restore-keys: |
+            ${{ runner.os }}-public-

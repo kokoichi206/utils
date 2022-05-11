@@ -1,0 +1,23 @@
+name: Local test
+
+on:
+  workflow_call:
+
+jobs:
+  local-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out
+        uses: actions/checkout@v2
+
+      - name: Run Local Unit Test
+        run: ./gradlew testDebug
+
+      - name: Upload Reports
+        uses: actions/upload-artifact@v2
+        with:
+          name: Local-Test-Reports
+          path: app/build/reports/tests/*
+        if: always()
