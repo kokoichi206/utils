@@ -1,0 +1,13 @@
+name: Build
+
+on:
+  workflow_call:
+
+jobs:
+  swift-lint:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Lint code using SwiftLint
+        run: swiftlint lint --reporter github-actions-logging
