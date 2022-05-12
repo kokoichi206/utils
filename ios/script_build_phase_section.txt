@@ -1,0 +1,17 @@
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "if type \"/opt/homebrew/bin/swiftlint\"  > /dev/null 2>&1; then\n## format autocorrect\n/opt/homebrew/bin/swiftlint --fix --format\n## format check\n/opt/homebrew/bin/swiftlint\nelif type \"/usr/local/bin/swiftlint\" > /dev/null 2>&1; then\n## format autocorrect\n/usr/local/bin/swiftlint --fix --format\n## format check\n/usr/local/bin/swiftlint\nelse\n  echo \"swiftlint is not installed.\"\nfi\n";
+		};
+/* End PBXShellScriptBuildPhase section */

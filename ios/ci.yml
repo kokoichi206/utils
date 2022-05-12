@@ -1,0 +1,16 @@
+name: Main
+
+on:
+  push:
+
+jobs:
+  lint:
+    uses: kokoichi206/utils/.github/workflows/ios-lint.yml@main
+
+  build-check:
+    needs: [lint]
+    uses: kokoichi206/utils/.github/workflows/ios-build.yml@main
+
+  test:
+    needs: [lint]
+    uses: kokoichi206/utils/.github/workflows/ios-test.yml@main

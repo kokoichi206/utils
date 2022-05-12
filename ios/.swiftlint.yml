@@ -1,0 +1,22 @@
+excluded: # ignore the Swift Pakace Manager dirs
+  - Sources
+  - Tests
+
+# メソッドの行数制限
+function_body_length:
+- 130   # warning
+- 220   # error
+
+identifier_name:
+  min_length: # only min_length
+    error: 2 # only error
+  excluded: # excluded via string array
+    - i
+    - id
+    - URL
+    - x
+    - y
+    - vc
+    - on
+    - to
+  reporter: "xcode"
