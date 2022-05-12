@@ -1,7 +1,13 @@
 name: Main
 
 on:
-  push:
+  pull_request:
+    paths-ignore:
+      - 'docs/**'
+      - '**.md'
+  schedule:
+    # 日本時間24時00分
+    - cron: '0 15 * * *'
 
 jobs:
   lint:
