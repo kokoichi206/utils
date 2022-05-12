@@ -7,3 +7,7 @@ example: [ci.yml](ci.yml)
 - [script_build_phase_section.txt](./script_build_phase_section.txt)
   - swiftlintのためにproject.pbxprojに追加が必要なテキストの、3行目以降。
     - 2行目にカスタムする項目があるため、1,2行目はスクリプトで対応。
+
+### semantic versioning
+- [version_update.sh](./version_update.sh)
+  - バージョンを更新するためのもの。
