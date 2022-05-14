@@ -6,8 +6,7 @@
 #
 # Usage:
 #   0. move to the project dir
-#   1. curl -s https://raw.githubusercontent.com/kokoichi206/utils/main/ios/setup.sh -o setup.sh
-#   2. bash setup.sh [OPTIONs]
+#   1. curl -s https://raw.githubusercontent.com/kokoichi206/utils/main/ios/setup.sh -o setup.sh && bash setup.sh
 #
 set -eu
 
@@ -206,12 +205,12 @@ if "${NEED_SEMANTIC_VERSIONING}"; then
     # set MARKETING_VERSION from 1.0 to 0.0.0
     sed -i -e \
         "s@MARKETING_VERSION = .*;@MARKETING_VERSION = 0.0.0;@g" \
-        "${FILE_NAME}"
+        "${TARGET_FILE}"
 
     # set CURRENT_PROJECT_VERSION from 1 to 0
     sed -i -e \
         "s@CURRENT_PROJECT_VERSION = .*;@CURRENT_PROJECT_VERSION = 0;@g" \
-        "${FILE_NAME}"
+        "${TARGET_FILE}"
 fi
 # ===== END: semantic versioning =====
 
