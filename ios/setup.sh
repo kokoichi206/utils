@@ -22,6 +22,8 @@ NEED_CI=true
 NEED_SEMANTIC_VERSIONING=true
 # gitignore created by gitignore.io
 NEED_GITIGNORE=true
+# pull request template
+NEED_PR_TEMPLATE=true
 # whether remove tmp directory when finished
 REMOVE_TMP_DIR=true
 # ===== Customize settings =====
@@ -38,6 +40,8 @@ MAIN_CI_URL="https://raw.githubusercontent.com/kokoichi206/utils/main/ios/ci.yml
 VERSION_UPDATE_URL="https://raw.githubusercontent.com/kokoichi206/utils/main/ios/version_update.sh"
 ## gitignore
 GITIGNORE_URL="https://raw.githubusercontent.com/kokoichi206/utils/main/ios/.gitignore"
+## pull request
+PR_TEMPLATE_URL="https://raw.githubusercontent.com/kokoichi206/utils/main/.github/pull_request_template.md"
 # ===== URL =====
 
 # ===== BEGIN: define print error, usage =====
@@ -214,5 +218,12 @@ fi
 # ===== BEGIN: gitignore =====
 if "${NEED_GITIGNORE}"; then
     curl -s "${GITIGNORE_URL}" -o ./.gitignore
+fi
+# ===== END: gitignore =====
+
+# ===== BEGIN: pull request template =====
+if "${NEED_PR_TEMPLATE}"; then
+    mkdir -p ./.github
+    curl -s "${PR_TEMPLATE_URL}" -o ./.github/pull_request_template.md
 fi
 # ===== END: gitignore =====

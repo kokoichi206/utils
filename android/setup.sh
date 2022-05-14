@@ -17,12 +17,16 @@ NEED_CI=true
 #   versionCode: 10103
 #   versionName: 1.1.3
 NEED_SEMANTIC_VERSIONING=true
+# pull request template
+NEED_PR_TEMPLATE=true
 # ===== Customize settings =====
 
 # ===== URL =====
 ## github-actions
 MAIN_CI_URL="https://raw.githubusercontent.com/kokoichi206/utils/main/android/ci.yml"
 SCHEDULE_CI_URL="https://raw.githubusercontent.com/kokoichi206/utils/main/android/schedule.yml"
+## pull request
+PR_TEMPLATE_URL="https://raw.githubusercontent.com/kokoichi206/utils/main/.github/pull_request_template.md"
 # ===== URL =====
 
 # ===== BEGIN: define print error, usage =====
@@ -130,3 +134,10 @@ if "${NEED_SEMANTIC_VERSIONING}"; then
     fi
 fi
 # ===== END: semantic versioning =====
+
+# ===== BEGIN: pull request template =====
+if "${NEED_PR_TEMPLATE}"; then
+    mkdir -p ./.github
+    curl -s "${PR_TEMPLATE_URL}" -o ./.github/pull_request_template.md
+fi
+# ===== END: gitignore =====
