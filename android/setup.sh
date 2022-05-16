@@ -43,7 +43,7 @@ function print_usage() {
     echo "  -c, --ci"
     echo "      skip ci (github actions)"
     echo "  -s, --semantic-versioning"
-    echo "      skip lint"
+    echo "      skip version management"
 }
 usage_and_exit()
 {
@@ -140,4 +140,4 @@ if "${NEED_PR_TEMPLATE}"; then
     mkdir -p ./.github
     curl -s "${PR_TEMPLATE_URL}" -o ./.github/pull_request_template.md
 fi
-# ===== END: gitignore =====
+# ===== END: pull request template =====
