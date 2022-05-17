@@ -156,7 +156,7 @@ trap recover_from_backup EXIT
 # ===== BEGIN: swiftlint in project.pbxproj =====
 if "${NEED_LINT}"; then
     # download the necessary files
-    curl -s "$LINT_URL" -o .swiftlint.ym
+    curl -s "$LINT_URL" -o .swiftlint.yml
     curl -s "${SCRIPT_BUILD_PHASE_SECTION_URL}" -o "${LINT_SETTING}"
 
     tmp="${TMP_DIR}/tmp.txt"
