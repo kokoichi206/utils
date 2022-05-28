@@ -1,0 +1,4 @@
+UPDATE sessions
+SET expires_at = CURRENT_TIMESTAMP
+WHERE id = 'e80f63ab-476b-4944-b24d-4e128b3e3c7a'
+RETURNING *;
