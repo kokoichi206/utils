@@ -121,9 +121,11 @@ if "${NEED_SEMANTIC_VERSIONING}"; then
         fi
         echo "${line}" >> "${tmp}"
     done < "${TARGET_FILE}"
+    # Android Studioでは最後に改行が入ってないので、ここで調整する。
+    printf "}" >> "${tmp}"
     mv "${tmp}" "${TARGET_FILE}"
     sed -i -e \
-        "s@versionName .*@versionName 0.0.0@g" \
+        "s@versionName .*@versionName \"\${versionMajor}.\${versionMinor}.\${versionPatch}\"@g" \
         "${TARGET_FILE}"
     sed -i -e \
         "s@versionCode .*@versionCode versionMajor * 10000 + versionMinor * 100 + versionPatch@g" \
