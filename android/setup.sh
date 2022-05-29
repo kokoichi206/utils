@@ -116,7 +116,7 @@ if "${NEED_SEMANTIC_VERSIONING}"; then
         if [[ "${line}" == "android {" ]]; then
             echo "def versionMajor = 0" >> "${tmp}"
             echo "def versionMinor = 0" >> "${tmp}"
-            echo "def versionPatch = 0" >> "${tmp}"
+            echo "def versionPatch = 1" >> "${tmp}"
             echo "" >> "${tmp}"
         fi
         echo "${line}" >> "${tmp}"
